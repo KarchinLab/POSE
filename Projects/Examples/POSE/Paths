@@ -1,0 +1,2 @@
+Fasta = ${HOME}/POSE/Database/Examples/Sequence/CFTR.fasta
+CysticFibrosis = ${HOME}/POSE/Database/Examples/Mutation/CysticFibrosis.Train

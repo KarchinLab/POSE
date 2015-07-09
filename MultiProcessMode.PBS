@@ -1,0 +1,31 @@
+#!/bin/bash
+
+Procs=$1
+Ext=$2
+Proc=0
+while [ $Proc -lt $Procs ]
+do
+    echo "#!/bin/bash" > pose.qsub
+    echo "#Submission script for multiple serial jobs on the Portable Batch System" >> pose.qsub
+    echo "#" >> pose.qsub
+    echo "#PBS -l nodes=1:ppn=8,walltime=48:00:00" >> pose.qsub
+    echo "#PBS -N serialx8" >> pose.qsub
+    echo "" >> pose.qsub
+    echo "# DIRECTORY TO RUN - $PBS_O_WORKDIR is directory job was submitted from" >> pose.qsub
+    echo "cd \$PBS_O_WORKDIR" >> pose.qsub
+    echo "" >> pose.qsub
+    echo "# EXECUTION COMMAND; ampersand off 8 jobs and wait" >> pose.qsub
+    PPN=1
+    while [ $PPN -le 8 ] && [ $Proc -lt $Procs ]
+    do
+	mkdir $Proc.$Ext; cp Paths Arguments $Proc.$Ext; ln -s ~/POSE/pose.py $Proc.$Ext/pose
+	sed "s/MultiProcessMode = 0 1/MultiProcessMode = $Proc $Procs/g" $Proc.$Ext/Arguments > $Proc.$Ext/tmp.txt
+	mv $Proc.$Ext/tmp.txt $Proc.$Ext/Arguments	
+        echo "(cd $Proc.$Ext; ./pose) &" >> pose.qsub
+	PPN=$[ PPN + 1 ]
+	Proc=$[ $Proc + 1 ]
+    done
+    echo wait >> pose.qsub
+    qsub pose.qsub
+    rm pose.qsub
+done

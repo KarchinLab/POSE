@@ -1,0 +1,3 @@
+Fasta = ${HOME}/POSE/Database/Examples/Sequence/CFTR.fasta
+CysticFibrosis = ${HOME}/POSE/Database/Examples/Mutation/Conductance
+Structure = ${HOME}/POSE/Database/Examples/Structure/CFTR.pdb
