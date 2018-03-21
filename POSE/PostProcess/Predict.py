@@ -2,7 +2,7 @@
 Get python modules
 '''
 import cPickle
-
+from collections import Counter
 '''
 Get third-party modules
 '''
@@ -24,7 +24,8 @@ def pose_prediction(Arguments):
 
     #First get the cutoff from the mutations originally used to make the POSE
     Mutations, Sequences, ReferenceGene, Identities, ResidueBurial, Annotation = make_pose_input(Arguments)
-    #These mutations are the ones we actually need. 
+    #These mutations are the ones we actually need.
+
     Mutations, POSEs = zip(*[(cPickle.load(open(File, "rb"))[0], cPickle.load(open(File, "rb"))[1][0]) \
                              for File in ls("./") if Arguments.Filename in File])
     Mutations, Phenotypes = Mutations[0].keys(), Mutations[0].values()
@@ -88,7 +89,7 @@ def epose_prediction(Arguments):
 
     #First get the cutoff from the mutations originally used to make the ePOSE
     Mutations, Sequences, ReferenceGene, Identities, ResidueBurial, Annotation = make_pose_input(Arguments)
-    #These mutations are the ones we actually need. 
+    #These mutations are the ones we actually need.
     Mutations, ePOSEs = zip(*[(cPickle.load(open(File, "rb"))[0], cPickle.load(open(File, "rb"))[1][0]) \
                              for File in ls("./") if Arguments.Filename in File])
     Mutations, Endophenotypes = Mutations[0].keys(), Mutations[0].values()
@@ -97,7 +98,7 @@ def epose_prediction(Arguments):
     ePOSEScores = []
     for ePOSE in ePOSEs:
         MSA = zip(*[Sequences[Gene] for Gene in ePOSE])  #Turn the list of genes into the MSA (sequence ensemble)
-
+        
         Scores = get_pose_scores(MSA, list(ePOSE), Identities, Mutations, ResidueBurial, Annotation, Arguments)
         ePOSEScores.append(Scores)
         a, b, RR = linear_regression(Scores, Endophenotypes)
@@ -108,14 +109,14 @@ def epose_prediction(Arguments):
 
     #Now we are ready to get the new mutations. 
     Mutations, Sequences, ReferenceGene, Identities, ResidueBurial, Annotation = make_pose_input(Arguments)
-
     Scores = []
+    
     for ePOSE in ePOSEs:
         MSA = zip(*[Sequences[Gene] for Gene in ePOSE]) #Turn the list of genes into the MSA (sequence ensemble)
         Scores.append(get_pose_scores(MSA, list(ePOSE), Identities, Mutations, ResidueBurial, Annotation, Arguments))
-
+    
     Scores = dict(zip(Mutations, zip(*Scores)))
-
+    
     print "Mutation, Mean POSE score, Standard deviation, Predicted Endophenotype, Standard deviation"
     for Mutation in Mutations:
         PredictedEndophenotypes = [a*mean(Scores[Mutation]) + b for a, b in LinearParameters] 

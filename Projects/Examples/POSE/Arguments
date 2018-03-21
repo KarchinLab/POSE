@@ -1,9 +1,10 @@
 Mode = POSE
 Mutations = CysticFibrosis
 MakePOSE = True
-PostProcess = False
 Trials = 3
 Optimizations = 1000
 OptimizationParameters = 100 0.01 1
-IdentitySegment = 376 628
+Structure = True
+Chain = A
+Domain = 376 628
 Seed = 4321

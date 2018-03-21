@@ -2,6 +2,7 @@
 Get python modules
 '''
 from os import environ
+import cPickle
 
 '''
 Get third-party modules
@@ -33,6 +34,9 @@ def get_sequences(Arguments):
     MUST be the first in your fasta file!!!
     '''
 
+    ReferenceGene, Sequences =  [cPickle.load(open(get_file("Fasta", Arguments.PathFile), "rb"))][0]
+
+    '''
     Genes = [Gene.strip() for Gene in file(get_file("Fasta", Arguments.PathFile)) if Gene[0] == ">"]
     for Gene in Genes:
         vars()[Gene] = []
@@ -57,7 +61,7 @@ def get_sequences(Arguments):
     Sequences = {}
     for Gene in Genes:
         Sequences[Gene] = "".join(ReducedAlignment[Genes.index(Gene)])
-       
+    '''   
     return Sequences
 
 def get_reference_gene(Arguments):
@@ -66,7 +70,11 @@ def get_reference_gene(Arguments):
     in). This gene/sequence MUST be the first in your fasta file!!!
     '''
 
-    return open(get_file("Fasta", Arguments.PathFile)).readlines()[0].strip()
+    ReferenceGene, Sequences =  [cPickle.load(open(get_file("Fasta", Arguments.PathFile), "rb"))][0]
+    
+    #return open(get_file("Fasta", Arguments.PathFile)).readlines()[0].strip()
+
+    return ReferenceGene
 
 def get_identities(ReferenceGene, Sequences, Arguments):
     '''
@@ -76,9 +84,9 @@ def get_identities(ReferenceGene, Sequences, Arguments):
     '''
     
     Identities = {}
-    if Arguments.IdentitySegment:
-        UpStream = int(Arguments.IdentitySegment[0])
-        DownStream = int(Arguments.IdentitySegment[1]) + 1
+    if Arguments.Domain[0]:
+        UpStream = int(Arguments.Domain[0]) - 1
+        DownStream = int(Arguments.Domain[1])
         for Gene, Sequence in Sequences.items():
             Identities[Gene] = float(len([Residues for Residues in zip(Sequences[ReferenceGene], Sequence)[UpStream:DownStream] \
                                               if Residues[0] == Residues[1]]))/len(Sequences[ReferenceGene][UpStream:DownStream])
@@ -86,7 +94,7 @@ def get_identities(ReferenceGene, Sequences, Arguments):
         for Gene, Sequence in Sequences.items():
             Identities[Gene] = float(len([Residues for Residues in zip(Sequences[ReferenceGene], Sequence) \
                                               if Residues[0] == Residues[1]]))/len(Sequences[ReferenceGene])
-    
+            
     return Identities
 
 class MutationObject:

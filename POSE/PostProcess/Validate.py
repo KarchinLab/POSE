@@ -73,14 +73,14 @@ def validate_epose(Arguments):
     CrossValidations = [cPickle.load(open(File, "rb")) for File in ls("./") if Arguments.Filename + ".CrossValidation." in File]
 
     Mutations, Sequences, ReferenceGene, Identities, ResidueBurial, Annotation = make_pose_input(Arguments)
-    
+
     Predictions = {}
     for CrossValidation in CrossValidations:
         TestingMutations, ePOSEs = list(CrossValidation.keys()[0]), CrossValidation.values()[0]
 
         TrainingMutations = dict([(Mutation, Endophenotype) for Mutation, Endophenotype in Mutations.items() \
                                       if Mutation not in TestingMutations])
-
+        
         TestScores = []
         PredictedEndophenotypes = [] #this is where will put ePOSE scores that are converted to their corresponding endophenotype prediction
         for ePOSE in ePOSEs:
@@ -92,8 +92,7 @@ def validate_epose(Arguments):
             TrainScores = get_pose_scores(MSA, list(ePOSE), Identities, TrainingMutations.keys(), ResidueBurial, Annotation, Arguments)
             a, b, RR = linear_regression(TrainScores, TrainingMutations.values())
             PredictedEndophenotypes.append([a*x + b for x in test_scores])
-
-
+            
         PredictedEndophenotypes = dict(zip(TestingMutations, zip(*PredictedEndophenotypes)))
 
         #If you had more than one trial in you MakePOSE, you have more than one score associated with each mutation. Here we collect em
@@ -101,7 +100,7 @@ def validate_epose(Arguments):
             #Now we get the mean and standard deviation of scores associated with each mutation (relevant if trial > 1 in you initial MakePOSE).
             Predictions[Mutation] = [round(mean(Scores), 3), round(std(Scores), 3), \
                                          round(mean(PredictedEndophenotypes[Mutation]), 3), round(std(PredictedEndophenotypes[Mutation]), 3)]
-         
+        
     Scores = [Predictions[Mutation][0] for Mutation in Mutations.keys()] #make sure scores are ordered just like Mutations.values()
     print ", ".join(["Mutation", "Measurement", "Score", "Std dev", "Prediction", "Std dev"])
     for Mutation in Mutations.keys():

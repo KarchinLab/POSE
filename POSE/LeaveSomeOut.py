@@ -32,7 +32,7 @@ def cross_validation(HoldoutMutations, Arguments):
       #Make a new dictionary without any of the testing mutations
       TrainingMutations = dict([(Mutation, Phenotype) for Mutation, Phenotype in Mutations.items() \
                                    if Mutation not in TestingMutations])
-      
+
       POSEs = []
       Results = {}
       

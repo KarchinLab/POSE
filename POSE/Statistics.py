@@ -4,11 +4,14 @@ Get python modules
 from itertools import combinations as combos 
 from itertools import permutations as permuts
 from math import sqrt, erf
+import os
+import warnings
+warnings.filterwarnings("ignore")
 
 '''
 Get third-party modules
 '''
-from numpy import random, mean, median, std, arange, trapz
+from numpy import random, mean, median, std, arange, trapz, errstate
 import rpy2.robjects as ro
 
 '''
@@ -243,5 +246,5 @@ def cumulative_distribution_function(Point, Mean, StandardDeviation):
     For a normally distributed probability density function, defined by the input mean and standard deviation, 
     return the area under the curve down stream (i.e, left tail) from the point (x coordinate)
     '''
-    
-    return 0.5 * (1 + erf((Point - Mean)/sqrt(2 * StandardDeviation**2)))
+
+    with errstate(divide='ignore'): return 0.5 * (1 + erf((Point - Mean)/sqrt(2 * StandardDeviation**2)))

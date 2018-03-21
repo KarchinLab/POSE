@@ -59,7 +59,8 @@ def get_argument_file(Arguments):
 
 def get_arguments():
     '''
-    Read in the arguments to run moca. Can either be command line or the arguments file
+    Read in the POSE defaults. Override defaults with from the command line or arguments file
+    See UsersManual.pdf for more detail on commands
     '''
 
     parser = argument_parser()
@@ -69,24 +70,27 @@ def get_arguments():
                             help="Supply a 'seed' (and supply a long int) when output reproducility is required (controls stochastic components of algorithm)")
     parser.add_argument("-c", "--correlated", dest="Correlated", action="store_true", default=True, \
                             help="Do increasing POSE score correlate with the value of the measurement, or are these numbers anticorrelated?")
-    parser.add_argument("-d", "--debug", dest="Debug", action="store_true", default=False, \
-                            help="run in python debug mode 'pdb'")
-    
+    parser.add_argument("-d", "--domain", dest="Domain", nargs=2, default=[0, 0], \
+                            help="User-defined range of amino acids to be considered at either the initial Blastp and alignment, and during (e)POSE derivation. Example: 'Domain = 305, 678'. The real reason to use this argument is to isolate distinct evolutionary modules within you protein of interest.")
+    parser.add_argument("-e", "--email", dest="Email", default=None, \
+                            help="Give me the name you used to point to mutation files in the paths file. See the Paths and Arguments files from the tutorial for example POSE and ePOSE usage")
     parser.add_argument("-f", "--filename", dest="Filename", default="Default", \
                             help="Input/output filname prefix for reading/writing files. By default, filename prefix is the string provided to the mutation command + '.' Mode (e.g., CFTR.POSE")
-    parser.add_argument("-g", "--structure", dest="Structure", action="store_true", default=False, \
-                            help="Provide PDB-formatted structure file to calculate and consider residue burial for scoreing mutations")
+    parser.add_argument("-g", "--geneidentifier", dest="GeneIdentifier", action="store_true", default=None, \
+                            help="Perhaps more appropriately a 'protein identifier', this can be either a hugo gene symbol (e.g., PIK3CA) or a uniprot identifier (e.g., P42336)")
     #h = help
     parser.add_argument("-i", "--optimizationparameters", dest="OptimizationParameters", nargs=3, default=[100, 0.01, 10], \
                             help="The first param specifies the frequency to repopulate the sequence pool with top predicting POSEs, the second param specificies the percent of top POSEs to repopulate the pool, and the third is the number to write to disk for each trial. Defaults specify that every 100 optimizations the top-performing 1%% of POSEs go back into the sequence pool, and when a whole trial is done, write the top 10 POSEs to disk.")
-    parser.add_argument("-j", "--mode", dest="Mode", default="POSE", \
-                            help="Use POSE for binary phenotypes and ePOSE for continuous phenotype (i.e., endophenotypes)")
-    parser.add_argument("-k", "--identitysegment", dest="IdentitySegment", nargs=2, default=[0, 0], \
-                            help="Sometimes you don't want the entire protein sequence to be included when determining the sequence weights. For instance, you might be scoring mutations from a evolutionarily modular domain, so some of the full sequences in the initial pool might be irrelevant outside of this domain. Accounts for python slicing (i.e., enter the exact resiues you want 'upstream', 'downstream')")
+    parser.add_argument("-j", "--preprocess", dest="PreProcess", action="store_true", default=None, \
+                            help="FILL IN")
+    parser.add_argument("-k", "--mutations", dest="Mutations", nargs="*", \
+                            help="Give me the name you used to point to mutation files in the paths file. See the Paths and Arguments files from the tutorial for example POSE and ePOSE usage")
+    #parser.add_argument("-k", "--identitysegment", dest="IdentitySegment", nargs=2, default=[0, 0], \
+     #                       help="Sometimes you don't want the entire protein sequence to be included when determining the sequence weights. For instance, you might be scoring mutations from a evolutionarily modular domain, so some of the full sequences in the initial pool might be irrelevant outside of this domain. Accounts for python slicing (i.e., enter the exact resiues you want 'upstream', 'downstream')")
     parser.add_argument("-l", "--leavesomeout", dest="LeaveSomeOut", default=0, type=int, \
                             help="Specificy the number to leave out for a leave-some-out cross-validation")
-    parser.add_argument("-m", "--mutations", dest="Mutations", nargs="*", \
-                            help="Give me the name you used to point to mutation files in the paths file. See the Paths and Arguments files from the tutorial for example POSE and ePOSE usage") 
+    parser.add_argument("-m", "--mode", dest="Mode", default="PreProcess", 
+                        help="'PreProcess' if you want POSE to prepare the initial sequence pool (i.e., input MSA) for you. '(e)POSE' to make either an ePOSE or POSE. 'PostProcess' for analyzing results. See POSE user's manual for all options (default=PreProcess)")
     parser.add_argument("-n", "--maxrandomsequences", dest="MaxRandomSequences", default=150, type=int, \
                             help="Maxium number of random sequences sampled during a single iteration of POSE construction")
     parser.add_argument("-o", "--optimizations", dest="Optimizations", default=1000, type=int, \
@@ -97,7 +101,8 @@ def get_arguments():
                             help="If structure is called, should I be looking at a particular chain in the PDB file. Note: Burial calculations consider all atoms in the PDB, but I need to know which residues to consider for scoring purposes")
     parser.add_argument("-r", "--makepose", dest="MakePOSE", action="store_true", default=False, \
                             help="Default mode for constructing phenotype-optimized sequences ensembles")
-    
+    parser.add_argument("-s", "--structure", dest="Structure", action="store_true", default=False, \
+                            help="Provide PDB-formatted structure file to calculate and consider residue burial for scoreing mutations")
     parser.add_argument("-t", "--trials", dest="Trials", default=1, type=int, \
                             help="How many times should I start POSE optimization from the beginning. This is important because each start can lead to different local minima")
     parser.add_argument("-u", "--multiprocessmode", dest="MultiProcessMode", nargs=2, default=[0, 1], \
@@ -107,11 +112,15 @@ def get_arguments():
     parser.add_argument("-w", "--postprocess", dest="PostProcess", action="store_true", default=False, \
                             help="Choose a method for postproccessing your POSE results")
 
-    parser.add_argument("-y", "--mypose", dest="MyPOSE", action="store_true", default=False, \
-                            help="Build your own POSE module!")
-    parser.add_argument("-z", "--profile", dest="Profile", action="store_true", default=False, \
-                            help="Prints an itemized report of algorithmic run performance sorted by cummulative time spent executing each function")
-    
+    #Post-processing options get capital letters
+
+    #Developer options
+    parser.add_argument("--mypose", dest="MyPOSE", action="store_true", default=False, 
+                        help="Build your own MOCA module! See MyMOCA.py")
+    parser.add_argument("--profile", dest="Profile", action="store_true", default=False,
+                        help="Profile to find inefficient code blocks")
+    parser.add_argument("--debug", dest="Debug", action="store_true", default=False,
+                        help="run in python debug mode 'pdb'")
     
     Arguments = parser.parse_args()
     

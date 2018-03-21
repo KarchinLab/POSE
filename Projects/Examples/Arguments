@@ -1,0 +1,7 @@
+Mode = POSE
+MakePOSE = False
+PreProcess = MakeAlignment
+GeneIdentifier = CFTR
+Domain = 376 628
+Email = your_email@email.com
+Filename = CFTR_NBD1

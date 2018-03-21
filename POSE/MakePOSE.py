@@ -152,7 +152,7 @@ def get_poses(Arguments, Mutations, Sequences, ReferenceGene, Identities, Residu
         
         #Make sure all mutations were scorable with the most recent sequence ensemble. Mutations.values() are the (endo)phenotypes
         if len(Scores) == len(Mutations.values()): SequenceEnsembles[tuple(Genes)] = [Scores, Mutations.values()]
-
+        
         if not Optimization%RepopulateFrequency and Optimization > 0:
             POSEs = evaluation_method(SequenceEnsembles, int(POSEsToRepopulate*len(SequenceEnsembles.keys())), \
                                           Arguments)
@@ -176,7 +176,7 @@ def make_pose(Arguments):
             POSE = get_poses(Arguments, Mutations, Sequences, ReferenceGene, Identities, ResidueBurial, Annotation, get_pose_scores, pose_evaluator)
         if Arguments.Mode == "ePOSE":
             POSE = get_poses(Arguments, Mutations, Sequences, ReferenceGene, Identities, ResidueBurial, Annotation, get_pose_scores, epose_evaluator)
-            
+
         cPickle.dump([Mutations, POSE], open(Arguments.Filename + "." + str(Trial), "wb"), -1)
 
     return
