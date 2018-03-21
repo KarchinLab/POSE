@@ -15,9 +15,10 @@ Get POSE modules
 '''
 from POSE.MyPOSE import my_pose
 from POSE.LeaveSomeOut import leave_some_out
-from POSE.GetArguments import get_arguments
+from POSE.Arguments import get_arguments
 from POSE.MakePOSE import make_pose
 from POSE.PostProcess.PostProcess import post_process
+from POSE.PreProcess import pre_process
 
 def main(Arguments):
     '''
@@ -28,9 +29,15 @@ def main(Arguments):
     #Development/testing options
     if Arguments.Debug:
         pdb.set_trace()
+
+    #If a seed isn't provided, set one and report to user.
     if Arguments.Seed:
-        random.seed( Arguments.Seed )
-        numdom.seed( Arguments.Seed ) #we need to make control numpy's randomness as well!
+        pass
+    else:
+        Arguments.Seed == int(1e5*random.random()) 
+        
+    random.seed( Arguments.Seed )
+    numdom.seed( Arguments.Seed ) #we need to make control numpy's randomness as well!
     
     if type(Arguments.Mutations) == list and len(Arguments.Mutations) == 1:
         Arguments.Mutations = Arguments.Mutations[0]
@@ -52,7 +59,10 @@ def main(Arguments):
     if Arguments.MyPOSE: #.POSE == "MyPOSE": #Call a custom function that you added to MyPOSE.py
         my_pose(Arguments)
         POSEfnc += 1
-
+    if Arguments.PreProcess:
+        pre_process(Arguments)
+        POSEfnc += 1
+        
     if not POSEfnc: 
         print "You ran POSE without specifying any POSE modes!!!"
         print "Exiting....."
